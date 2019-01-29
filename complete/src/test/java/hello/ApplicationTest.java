@@ -17,13 +17,27 @@
 package hello;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.server.ResponseStatusException;
+
+import javax.servlet.ServletContext;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -31,10 +45,34 @@ public class ApplicationTest {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+	private MockMvc mockMvc;
+	@Autowired
+	private WebApplicationContext wac;
+
+	@Before
+	public void setup() {
+		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+		System.out.println(wac.containsLocalBean("MyErrorController"));
+	}
 
 	@Test
 	public void contextLoads() {
 		assertThat(restTemplate).isNotNull();
+	}
+
+	@Test
+	public void errors() throws Exception{
+		this.mockMvc.perform(get("/planets/jupiter")).andExpect(status().isForbidden()).andDo(print());
+	}
+
+	@Test
+	public void illegalArgumentException() throws Exception{
+		this.mockMvc.perform(get("/planetz/jupiter")).andExpect(status().isNotFound()).andDo(print());
+	}
+
+	@Test
+	public void nonExistingPath() throws Exception{
+		this.mockMvc.perform(get("/nonExisting")).andExpect(status().isNotFound()).andDo(print());
 	}
 
 }

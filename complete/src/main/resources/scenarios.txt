@@ -1,0 +1,4 @@
+#request fails before entering method e.g non existing path > error controller
+#request fails after entering method with exception that is handled by @controllerAdvice > bypasses error controller
+#because handleExceptionInternal() converts exception to ResponseEntity
+#throw responseException from method > error controller
